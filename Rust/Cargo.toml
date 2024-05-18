@@ -1,0 +1,8 @@
+[package]
+name = "Translator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4"
+rusqlite = { version = "0.29.0", features = ["bundled"] }
