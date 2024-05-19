@@ -1,5 +1,5 @@
 ```
-C++ <-(JNI)- Java <-(gRPC)- Python <-(SQLite)- Rust <-(HTTP)- JS
+C++ <-(JNI)- Java <-(gRPC)- Go <-(WebSockets)- Python <-(SQLite)- Rust <-(HTTP)- JS
 ```
 <br>
 
