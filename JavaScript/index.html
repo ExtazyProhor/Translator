@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Ввод данных</h1>
+        <form id="dataForm">
+            <label for="textInput">Введите текст:</label>
+            <input type="text" id="textInput" name="textInput" required>
+
+            <label for="arrayInput">Введите массив целых чисел:</label>
+            <div id="arrayInput" class="array-input">
+                <label>
+                    <input type="number" name="arrayInput[]" required>
+                </label>
+            </div>
+            <button type="button" id="addNumberButton">Добавить элемент</button>
+            <button type="button" id="removeNumberButton">Удалить элемент</button>
+
+            <button type="submit">Отправить данные</button>
+        </form>
+        <div id="loading" class="loading">Загрузка...</div>
+        <div id="response" class="response"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
