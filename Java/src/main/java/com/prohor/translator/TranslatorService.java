@@ -9,6 +9,10 @@ import java.util.Collections;
 import java.util.List;
 
 class TranslatorService extends TranslatorServiceGrpc.TranslatorServiceImplBase {
+    static {
+        System.loadLibrary("nativeLib");
+    }
+
     @Override
     public void process(DataRequest request, StreamObserver<DataResponse> responseObserver) {
         String text = request.getText();

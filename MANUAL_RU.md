@@ -451,8 +451,10 @@ message DataResponse {
 Теперь необходимо установить компилятор protoc. Для этого заходим
 в [релизы их репозитория](https://github.com/protocolbuffers/protobuf/releases/tag/v27.0),
 и скачиваем файл под свою платформу. Для 64-битной Windows это будет
-файл `protoc-27.0-win64.zip`. Использовать его для генерации кода мы
-будем в разделе с конкретными языками.
+файл `protoc-27.0-win64.zip`. Разархивируем содержимое куда-нибудь,
+например в `C:\Program Files\Protobuf`, и добавляем папку `bin` в PATH.
+Использовать его для генерации кода мы будем в разделе с конкретными
+языками.
 
 <h3 align="center">Go</h3>
 
@@ -525,6 +527,33 @@ javac -h . ../Java/src/main/java/com/prohor/translator/TranslatorService.java
 [заголовочный файл](C++/com_prohor_translator_TranslatorService.h),
 и, согласно сигнатуре функции из него, реализуем ее в файле
 [main.cpp](C++/main.cpp). Теперь нужно собрать этот код в динамическую
-библиотеку.
+библиотеку. Для этого нам понадобится gcc. Для Windows
+[скачиваем](https://github.com/niXman/mingw-builds-binaries/releases)
+MINGW. Для 64-битной версии ОС нам подойдет
+`x86_64-13.2.0-release-posix-seh-msvcrt-rt_v11-rev0.7z`. Разархивируем
+содержимое куда-нибудь, например в `C:\Program Files\mingw64`, и также
+добавляем папку `bin` в PATH. Теперь мы можем создать `.dll` файл из
+нашего C++ кода. Нам потребуется путь к jdk для этого, поэтому узнайте
+его заранее. Переходим в директорию /C++/ и пишем:
+```shell
+g++ -m64 -c -I"C:\Program Files\Java\jdk-21\include" -I"C:\Program Files\Java\jdk-21\include\win32" main.cpp -o main.o
+g++ -m64 -shared -o nativeLib.dll main.o -Wl,--add-stdcall-alias
+```
+Первая команда создаст объектный модуль `main.o`, вторая создаст из этого
+модуля динамическую библиотеку. У нас появился файл `nativeLib.dll`.
+Теперь необходимо добавить в Java код пару строчек:
+```java
+class TranslatorService {
+    static {
+        System.loadLibrary("nativeLib");
+    }
+}
+```
+Мы указываем только имя, так как путь мы будем задавать аргументом при
+запуске программы.
+
+<h3 align="center">Запуск</h3>
+Весь код мы написали, все приложения связали, осталось все это дело
+запустить.
 
 <h5 align="right">Прохоров Тимофей</h5>
