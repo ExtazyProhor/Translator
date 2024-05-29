@@ -381,9 +381,11 @@ tokio = { version = "1", features = ["full"] }
 базы данных. Но, пока не реализовано приложение на python,
 ожидание ответа будет вечным. Зато, мы уже можем увидеть
 заполненные данные в БД:
-![InputMessages](assets/InputMessages.png)
 
-![ArrayElements](assets/ArrayElements.png)
+<div align="center">
+    <img src="assets/InputMessages.png" alt="InputMessages"/>
+    <img src="assets/ArrayElements.png" alt="ArrayElements"/>
+</div>  
 
 Программа сдвинула их циклично вправо, из-за чего последняя буква
 стала первой, а последний элемент массива - первым. Теперь, пора
@@ -447,8 +449,7 @@ message DataResponse {
 и возвращающая сообщения, с установленными нами типами данных.
 
 Теперь необходимо установить компилятор protoc. Для этого заходим
-в [релизы их репозитория
-](https://github.com/protocolbuffers/protobuf/releases/tag/v27.0)
+в [релизы их репозитория](https://github.com/protocolbuffers/protobuf/releases/tag/v27.0),
 и скачиваем файл под свою платформу. Для 64-битной Windows это будет
 файл `protoc-27.0-win64.zip`. Использовать его для генерации кода мы
 будем в разделе с конкретными языками.
@@ -457,7 +458,7 @@ message DataResponse {
 
 Теперь создаем приложение на Go. В каталоге репозитория пишем:
 ```shell
-mkdir Golang
+md Golang
 cd Golang
 go mod init Golang
 go get github.com/gorilla/websocket
@@ -488,6 +489,42 @@ Web-Socket сервер на порту `8102` и подключается к gR
 <h3 align="center">Java</h3>
 
 Предпоследняя программа также потребует генерации кода с помощью
-Protobuf.
+Protobuf. Этим займется плагин системы сборки maven, которой мы
+будем пользоваться. Обратите внимание на добавленные мною плагины и
+зависимости в файле [pom.xml](Java/pom.xml). В каталог `src/main/proto`
+я скопировал `.proto` файл, для того чтобы плагин обнаружил его.
+При запуске задачи `package` из пункта `Lifecycle` проекта в maven,
+необходимый код сгенерируется и мы сможем его использовать.
+Запускать сервер на порту `8103` будет класс `Main`. Наследоваться от
+сгенерированного класса-сервиса будет класс `TranslatorService`, в
+котором также находится нативная функция:
+```java
+class TranslatorService {
+    public native String nativeFunction(String text, int[] array);
+}
+```
+Как мы видим, функция не имеет реализации - только сигнатуру. Эту
+функцию мы будем реализовывать на C++.
+
+<h3 align="center">C++</h3>
+
+Для реализации нативной функции, нам нужно получить
+сигнатуру этой функции для файла `.cpp`, а также заголовочный файл.
+Делается это при помощи java компилятора `javac`. Создадим в каталоге
+репозитория новую директорию и перейдем в нее:
+```shell
+md "C++"
+cd "C++"
+```
+Теперь сгенерируем заголовочный файл, указав путь к классу, содержащему
+нативную функцию:
+```shell
+javac -h . ../Java/src/main/java/com/prohor/translator/TranslatorService.java
+```
+Получаем
+[заголовочный файл](C++/com_prohor_translator_TranslatorService.h),
+и, согласно сигнатуре функции из него, реализуем ее в файле
+[main.cpp](C++/main.cpp). Теперь нужно собрать этот код в динамическую
+библиотеку.
 
 <h5 align="right">Прохоров Тимофей</h5>

@@ -20,7 +20,7 @@ class TranslatorService extends TranslatorServiceGrpc.TranslatorServiceImplBase 
             Collections.rotate(array, 1);
         }
 
-        String result = nativeFunction(text, array.stream().mapToInt(i->i).toArray());
+        String result = nativeFunction(text, array.stream().mapToInt(i -> i).toArray());
         DataResponse response = DataResponse.newBuilder()
                 .setResponse(result)
                 .build();
