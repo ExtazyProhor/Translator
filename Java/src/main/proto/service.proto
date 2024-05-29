@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package translator;
+
+option go_package = "protobuf/translator;service";
+option java_multiple_files = true;
+option java_package = "com.prohor.grpc";
+option java_outer_classname = "TranslatorOuterClass";
+
+service TranslatorService {
+    rpc Process (DataRequest) returns (DataResponse);
+}
+
+message DataRequest {
+    string text = 1;
+    repeated int32 array = 2;
+}
+
+message DataResponse {
+    string response = 1;
+}
