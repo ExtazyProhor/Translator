@@ -1,0 +1,10 @@
+/Rust/target/
+/SQL/*.db
+.idea/
+venv/
+/Golang/protobuf/
+/Java/target/
+/Java/src/main/java/com/prohor/grpc/
+/C++/*.o
+/C++/*.dll
+*.exe
