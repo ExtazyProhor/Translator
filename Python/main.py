@@ -2,11 +2,12 @@ import asyncio
 import json
 import websockets
 import sqlite3
+import argparse
 
 
-async def send_and_receive(ws_uri):
+async def send_and_receive(ws_uri, db_path):
     async with websockets.connect(ws_uri) as websocket:
-        with sqlite3.connect('../SQL/messages.db') as conn:
+        with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             while True:
                 cursor.execute("SELECT id FROM InputMessages LIMIT 1")
@@ -50,5 +51,9 @@ async def send_and_receive(ws_uri):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Translator')
+    parser.add_argument('db_path', help='Path to the SQLite database file')
+    args = parser.parse_args()
+
     uri = "ws://127.0.0.1:8102"
-    asyncio.get_event_loop().run_until_complete(send_and_receive(uri))
+    asyncio.run(send_and_receive(uri, args.db_path))

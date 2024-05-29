@@ -1,11 +1,9 @@
 package com.prohor.translator;
 
-import com.prohor.grpc.DataRequest;
-import com.prohor.grpc.DataResponse;
+import com.prohor.grpc.TranslatorOuterClass;
 import com.prohor.grpc.TranslatorServiceGrpc;
 import io.grpc.stub.StreamObserver;
 
-import java.util.Collections;
 import java.util.List;
 
 class TranslatorService extends TranslatorServiceGrpc.TranslatorServiceImplBase {
@@ -14,18 +12,23 @@ class TranslatorService extends TranslatorServiceGrpc.TranslatorServiceImplBase 
     }
 
     @Override
-    public void process(DataRequest request, StreamObserver<DataResponse> responseObserver) {
+    public void process(TranslatorOuterClass.DataRequest request,
+                        StreamObserver<TranslatorOuterClass.DataResponse> responseObserver) {
         String text = request.getText();
         if (!text.isEmpty()) {
             text = text.charAt(text.length() - 1) + text.substring(0, text.length() - 1);
         }
         List<Integer> array = request.getArrayList();
-        if (!array.isEmpty()) {
-            Collections.rotate(array, 1);
+        int[] intArray = new int[array.size()];
+        if (array.size() > 0) {
+            for(int i = 1; i < array.size(); ++i) {
+                intArray[i] = array.get(i - 1);
+            }
+            intArray[0] = array.getLast();
         }
 
-        String result = nativeFunction(text, array.stream().mapToInt(i -> i).toArray());
-        DataResponse response = DataResponse.newBuilder()
+        String result = nativeFunction(text, intArray);
+        TranslatorOuterClass.DataResponse response = TranslatorOuterClass.DataResponse.newBuilder()
                 .setResponse(result)
                 .build();
 

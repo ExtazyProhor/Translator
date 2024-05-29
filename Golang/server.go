@@ -5,16 +5,12 @@ import (
     "encoding/json"
     "log"
     "net/http"
+    "time"
 
-    "google.golang.org/grpc"
-    pb "protobuf/translator/service"
     "github.com/gorilla/websocket"
+    "google.golang.org/grpc"
+    pb "Golang/protobuf/translator"
 )
-
-type Message struct {
-    Text  string `json:"text"`
-    Array []int  `json:"array"`
-}
 
 var upgrader = websocket.Upgrader{
     ReadBufferSize:  1024,
@@ -31,14 +27,14 @@ func cyclicShiftString(s string) string {
     return s[len(s)-1:] + s[:len(s)-1]
 }
 
-func cyclicShiftArray(arr []int) []int {
+func cyclicShiftArray(arr []int32) []int32 {
     if len(arr) == 0 {
         return arr
     }
-    return append([]int{arr[len(arr)-1]}, arr[:len(arr)-1]...)
+    return append([]int32{arr[len(arr)-1]}, arr[:len(arr)-1]...)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func wsHandler(w http.ResponseWriter, r *http.Request) {
     conn, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
         log.Println(err)
@@ -46,65 +42,50 @@ func handler(w http.ResponseWriter, r *http.Request) {
     }
     defer conn.Close()
 
-    grpcConn, err := grpc.Dial("127.0.0.1:8103", grpc.WithInsecure())
-    if err != nil {
-        log.Fatalf("did not connect: %v", err)
-    }
-    defer grpcConn.Close()
-    client := pb.NewMyServiceClient(grpcConn)
-
     for {
-        _, message, err := conn.ReadMessage()
+        _, msg, err := conn.ReadMessage()
         if err != nil {
-            log.Println("read:", err)
-            break
+            log.Println(err)
+            return
         }
 
-        log.Printf("Received: %s", message)
+        var inputData struct {
+            Text  string  `json:"text"`
+            Array []int32 `json:"array"`
+        }
+        if err := json.Unmarshal(msg, &inputData); err != nil {
+            log.Println(err)
+            return
+        }
 
-        var msg Message
-        err = json.Unmarshal(message, &msg)
+        inputData.Text = cyclicShiftString(inputData.Text)
+        inputData.Array = cyclicShiftArray(inputData.Array)
+
+        connGRPC, err := grpc.Dial("127.0.0.1:8103", grpc.WithInsecure())
         if err != nil {
-            log.Println("unmarshal:", err)
-            continue
+            log.Println(err)
+            return
         }
+        defer connGRPC.Close()
 
-        // Cyclic shift
-        shiftedText := cyclicShiftString(msg.Text)
-        shiftedArray := cyclicShiftArray(msg.Array)
+        client := pb.NewTranslatorServiceClient(connGRPC)
+        ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+        defer cancel()
 
-        // Create gRPC request
-        grpcRequest := &pb.DataRequest{
-            Text:  shiftedText,
-            Array: shiftedArray,
-        }
-
-        // Send request to gRPC server
-        grpcResponse, err := client.ProcessData(context.Background(), grpcRequest)
+        resp, err := client.Process(ctx, &pb.DataRequest{
+            Text:  inputData.Text,
+            Array: inputData.Array,
+        })
         if err != nil {
-            log.Println("grpc error:", err)
-            continue
+            log.Println(err)
+            return
         }
 
-        // Send response back to WebSocket client
-        responseJSON, err := json.Marshal(grpcResponse)
-        if err != nil {
-            log.Println("marshal:", err)
-            continue
-        }
-
-        err = conn.WriteMessage(websocket.TextMessage, responseJSON)
-        if err != nil {
-            log.Println("write:", err)
-            break
-        }
-
-        log.Printf("Sent: %s", responseJSON)
+        conn.WriteMessage(websocket.TextMessage, []byte(resp.Response))
     }
 }
 
 func main() {
-    http.HandleFunc("/", handler)
-    log.Println("Starting WebSocket server on :8102")
+    http.HandleFunc("/", wsHandler)
     log.Fatal(http.ListenAndServe(":8102", nil))
 }
