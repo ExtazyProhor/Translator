@@ -369,6 +369,7 @@ queries and `rusqlite` to work with the database. We create a
 project while in the repository directory using the
 `cargo new Rust` command. In [file](Rust/Cargo.toml)
 `Cargo.toml` add the dependencies of the mentioned libraries:
+
 ```toml
 [dependencies]
 actix-web = "4"
@@ -558,6 +559,7 @@ Unzip the contents somewhere, for example in `C:\Program Files\mingw64`,
 and also add the `bin` folder to PATH. Now we can create a `.dll` file
 from our C++ code. We will need the jdk path for this, so find it out
 in advance. Go to the /C++/ directory and write:
+
 ```shell
 g++ -m64 -c -I"C:\Program Files\Java\jdk-21\include" -I"C:\Program Files\Java\jdk-21\include\win32" main.cpp -o main.o
 g++ -m64 -shared -o nativeLib.dll main.o -Wl,--add-stdcall-alias
@@ -566,6 +568,7 @@ The first command will create the object module `main.o`,
 the second will create a dynamic library from this module.
 We now have the file `nativeLib.dll`. Now you need to add a
 couple of lines to the Java code:
+
 ```java
 class TranslatorService {
     static {
@@ -581,8 +584,10 @@ do this, we run 2 maven tasks: first `clean`, then `install`. A
 `.jar` file will appear in the `target` directory.
 
 <h3 align="center">Launch</h3>
+
 We have written all the code, connected all the applications,
 all that remains is to launch it all:
+
 ```shell
 # Go to the repository directory
 cd Translator
